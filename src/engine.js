@@ -79,7 +79,9 @@ function makeEngine(cfg) {
       size() { return used; }
     };
   }
-  const TV = table(23), TD = table(22);
+  // The tables take about 75 MB, so they are allocated on the first search. legal() and next() never need them.
+  let TV = null, TD = null;
+  function ensureTables() { if (!TV) { TV = table(23); TD = table(22); } }
   const stacks = [];
   for (let d = 0; d < 80; d++) stacks.push(new Int16Array(64));
 
@@ -153,6 +155,7 @@ function makeEngine(cfg) {
     return { st: { b: Array.from(b), k, p: 1 - p }, line };
   }
   function evalMoves(st) {
+    ensureTables();
     const b = toB(st), k = st.k.slice(), p = st.p, out = new Int16Array(64);
     const n = gen(b, k, p, out), res = [];
     for (let t = 0; t < n; t++) {
@@ -163,9 +166,23 @@ function makeEngine(cfg) {
     }
     return { value: V(b, k, p, 0), moves: res };
   }
-  function choose(st) {
+  // slip is the chance (0 to 1) of playing a random legal move instead of the best one.
+  // An immediate three-in-a-row is always taken, so weaker levels still look awake.
+  function choose(st, slip = 0) {
     const p = st.p, sg = p === 0 ? 1 : -1, b = toB(st), k = st.k.slice();
     const out = new Int16Array(64), n = gen(b, k, p, out), cands = [];
+    if (!n) return null;
+    if (slip > 0) {
+      const wins = [];
+      for (let t = 0; t < n; t++) {
+        const m = out[t], u = applyM(b, k, p, m);
+        if (won(b, p)) wins.push(m);
+        undoM(b, k, p, m, u);
+      }
+      if (wins.length) return wins[Math.floor(Math.random() * wins.length)];
+      if (Math.random() < slip) return out[Math.floor(Math.random() * n)];
+    }
+    ensureTables();
     for (let t = 0; t < n; t++) {
       const m = out[t], u = applyM(b, k, p, m);
       const imm = won(b, p);
@@ -173,7 +190,6 @@ function makeEngine(cfg) {
       cands.push({ m, s: v * sg, imm, b2: Int8Array.from(b), k2: k.slice() });
       undoM(b, k, p, m, u);
     }
-    if (!cands.length) return null;
     const best = Math.max(...cands.map((c) => c.s));
     let pool = cands.filter((c) => c.s === best);
     if (best === 1) {
@@ -203,5 +219,5 @@ function makeEngine(cfg) {
     }
     return pool[Math.floor(Math.random() * pool.length)].m;
   }
-  return { ORDER, NB, beats, legal, next, evalMoves, choose, cached: () => TV.size() };
+  return { ORDER, NB, beats, legal, next, evalMoves, choose, cached: () => (TV ? TV.size() : 0) };
 }

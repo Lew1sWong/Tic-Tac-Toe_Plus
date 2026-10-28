@@ -2,15 +2,19 @@
 
 **English** | [中文](README.zh-CN.md)
 
-Tic-tac-toe where every piece carries a number and can capture its neighbors. The game is small enough to solve completely with minimax. The solver shows that the original rules are a forced win for the first player. Changing three rules makes perfect play a draw. The repository includes a browser version where you play against an AI that never loses.
+Tic-tac-toe where every piece carries a number and can capture its neighbors. The game is small enough to solve completely with minimax. The solver shows that the original rules are a forced win for the first player. Changing three rules makes perfect play a draw. The repository includes a browser version where you play against an AI at three levels, the strongest of which never loses, or against a friend on the same screen.
 
 ![Capture Three in English](docs/screenshot-en.jpg)
 
 ## Play
 
-Open `index.html` in a browser. It is a single file with no dependencies, so it works offline. To host it, enable GitHub Pages for this repository and publish from the root of the default branch.
+Play online at **[https://lew1swong.github.io/Tic-Tac-Toe_Plus/](https://lew1swong.github.io/Tic-Tac-Toe_Plus/)**, or open `index.html` in a browser. It is a single file and works offline. When online, it loads web fonts from Google Fonts without blocking the page; where Google is slow or unreachable, it falls back to system fonts.
 
-The page has a 中文 / English switch, three rule sets, a choice of White or Black, undo, and a hint mode. In hint mode, every legal move is labeled with its outcome under perfect play.
+The page has a 中文 / English switch, three rule sets, and four opponents: Easy, Normal and Perfect AI, or two players taking turns on one screen. Against the AI you choose White or Black. There is also undo and a hint mode, which labels every legal move with its outcome under perfect play.
+
+Stones are drawn in three sizes, so a 3 looks bigger than a 2 or a 1, like the wooden pieces in the video that inspired the game.
+
+The Perfect AI searches every position to the end of the game. Easy and Normal play a random legal move 50% and 20% of the time, and always take an immediate three in a row. Against a perfect player in Set A, Easy loses about 85% of games and Normal about half; the rest are draws.
 
 ## Rules
 
@@ -145,7 +149,8 @@ analysis/variants.py         solves the rule combinations, one JSON line each
 analysis/detail.py           skill and mistake metrics for the fair sets
 analysis/results.jsonl       the results shown above
 tests/test_engine.js         checks the JS engine against the Python results
-tests/test_ai.js             the AI against a random player, 300 games per side and rule set
+tests/test_ai.js             the AI against a random player, 300 games per side and rule set;
+                             Easy and Normal against a perfect player
 docs/                        screenshots
 ```
 
